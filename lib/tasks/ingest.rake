@@ -1,3 +1,7 @@
+require_relative '../../app/helpers/connection_helper'
+
+include ConnectionHelper
+
 desc 'Ingest recipes from file'
 task :ingest_recipes => :environment do
   require 'pg'
@@ -22,13 +26,4 @@ def sql_string(file)
       COPY recipes (data) FROM '#{file}';
     COMMIT;
   HEREDOC
-end   
-
-def conn
-  if ENV['DATABASE_URL'].present?
-    uri = URI.parse(ENV['DATABASE_URL'])
-    PG.connect(uri.hostname, uri.port, nil, nil, uri.path[1..-1], uri.user, uri.password)
-  else
-    PG.connect(dbname: 'postgres')
-  end
 end
