@@ -1,30 +1,27 @@
 module RecipesHelper
-  def build_query (keywords)
-    return nil if keywords.blank?
-    
-    keywords[1..].each_index.inject(query_for_first_keyword) do |acc, index|
-      placeholder = (index + 2).to_s
-      acc + "\n" + fragment_for(placeholder)
-    end + ";"
+  def deserialize(result)
+    objects_from(result).map { |recipe| humanize(recipe) }
   end
-  
+
   private
-  
-  def query_for_first_keyword
-    <<~HEREDOC.strip
-      select id, data
-      from recipes, jsonb_array_elements_text(data -> 'ingredients')
-      where value ilike '%$1%'
-    HEREDOC
+
+  def objects_from(result)
+    fields = result.fields
+    
+    result.values.map do |value_set| 
+      OpenStruct.new(Hash[fields.zip(value_set)])
+    end
   end
-  
-  def fragment_for(n)
-    <<~HEREDOC.strip
-    and id in (
-      select id
-      from recipes, jsonb_array_elements_text(data -> 'ingredients')
-      where value ilike '%$#{n}%'
-    )
-    HEREDOC
+
+  def humanize(recipe)
+    recipe.name = recipe.name[1..-2]
+    recipe.image_url = recipe.image_url[1..-2]
+    recipe.ingredients = recipe.ingredients[2..-3].split("\", \"")
+    recipe.time_needed = 
+      recipe.prep_time[1..-2] + " prep time + " +
+      recipe.cook_time[1..-2] + " cook time = " +
+      recipe.total_time[1..-2]
+      
+    recipe
   end
 end
