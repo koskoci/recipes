@@ -5,7 +5,7 @@ class RecipesController < ApplicationController
   def search
     render :not_found and return if params[:query].blank?
     
-    keywords = helpers.keywords_from(params[:query])
+    keywords = params[:query].split(", ")
     query = helpers.build_query(keywords)
     result_set = helpers.conn.exec_params(query, keywords)
     

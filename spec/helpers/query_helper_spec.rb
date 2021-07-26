@@ -15,7 +15,7 @@ RSpec.describe QueryHelper, type: :helper do
           , (data -> 'total_time') as total_time
           , (data -> 'ingredients') as ingredients
           from recipes, jsonb_array_elements_text(data -> 'ingredients')
-          where value ilike $1::text
+          where value ILIKE '%' || $1 || '%'
           order by image_url desc;
         HEREDOC
         
@@ -35,16 +35,16 @@ RSpec.describe QueryHelper, type: :helper do
           , (data -> 'total_time') as total_time
           , (data -> 'ingredients') as ingredients
           from recipes, jsonb_array_elements_text(data -> 'ingredients')
-          where value ilike $1::text
+          where value ILIKE '%' || $1 || '%'
           and id in (
             select id
             from recipes, jsonb_array_elements_text(data -> 'ingredients')
-            where value ilike $2::text
+            where value ILIKE '%' || $2 || '%'
           )
           and id in (
             select id
             from recipes, jsonb_array_elements_text(data -> 'ingredients')
-            where value ilike $3::text
+            where value ILIKE '%' || $3 || '%'
           )
           order by image_url desc;
         HEREDOC

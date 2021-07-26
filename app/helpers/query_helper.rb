@@ -6,10 +6,6 @@ module QueryHelper
     end + "\n" + "order by image_url desc;"
   end
   
-  def keywords_from(input)
-    input.split(", ").map { |keyword| "%" + keyword + "%" }
-  end
-  
   private
   
   def query_for_first_keyword
@@ -23,7 +19,7 @@ module QueryHelper
       , (data -> 'total_time') as total_time
       , (data -> 'ingredients') as ingredients
       from recipes, jsonb_array_elements_text(data -> 'ingredients')
-      where value ilike $1::text
+      where value ILIKE '%' || $1 || '%'
     HEREDOC
   end
   
@@ -32,7 +28,7 @@ module QueryHelper
     and id in (
       select id
       from recipes, jsonb_array_elements_text(data -> 'ingredients')
-      where value ilike $#{n}::text
+      where value ILIKE '%' || $#{n} || '%'
     )
     HEREDOC
   end
