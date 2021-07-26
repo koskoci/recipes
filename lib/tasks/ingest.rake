@@ -1,6 +1,6 @@
-require_relative '../../app/helpers/connection_helper'
+require_relative '../../app/helpers/application_helper'
 
-include ConnectionHelper
+include ApplicationHelper
 
 desc 'Ingest recipes from file'
 task :ingest_recipes => :environment do
