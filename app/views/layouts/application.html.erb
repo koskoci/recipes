@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Recipes</title>
+    <title>What to cook?</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
@@ -9,8 +9,9 @@
     <%= stylesheet_link_tag 'application', media: 'all' %>
   </head>
 
-  <body>
+  <body style="margin-left: 40px; margin-top: 30px;">
     <h1>What to cook?</h1>
+    <%= render partial: "search_field" %>
     <%= yield %>
   </body>
 </html>

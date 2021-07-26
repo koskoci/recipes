@@ -1,4 +1,24 @@
-/*
-  Place all the styles related to the matching controller here.
-  They will automatically be included in application.css.
-*/
+* {
+  font-family: sans-serif;
+}
+
+.left {
+   width: 450px;
+   height: 344px;
+   float: left;
+   overflow: auto;
+ }
+
+ .right {
+   margin-left: 450px;
+ }
+
+ .clear {
+   clear: both;
+ }
+ 
+ h4 > span {
+     font-family: monospace;
+     margin-left: 40px;
+   }
+ }
