@@ -1,24 +1,17 @@
 class RecipesController < ApplicationController
   def index
-    @recipes = helpers.conn.exec(query).values
   end
   
-  private
-  def query
-    <<~HEREDOC.strip
-      select id, (data -> 'name') as name
-      from recipes, jsonb_array_elements_text(data -> 'ingredients')
-      where value ilike '%oeuf%'
-      and id in (
-        select id
-        from recipes, jsonb_array_elements_text(data -> 'ingredients')
-        where value ilike '%viande%'
-      )
-      and id in (
-        select id
-        from recipes, jsonb_array_elements_text(data -> 'ingredients')
-        where value ilike '%sel%'
-      );
-    HEREDOC
+  def search
+    render :not_found and return if params[:query].blank?
+    
+    keywords = helpers.keywords_from(params[:query])
+    query = helpers.build_query(keywords)
+    result_set = helpers.conn.exec_params(query, keywords)
+    
+    render :not_found and return if result_set.values.blank?
+
+    @recipes = helpers.deserialize(result_set)
+    render :results
   end
 end
