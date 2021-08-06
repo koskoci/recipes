@@ -6,19 +6,27 @@ RSpec.describe QueryHelper, type: :helper do
         input = ["poire"]
         
         output = <<~HEREDOC.strip
-          select id
-          , (data -> 'name') as name
-          , (data -> 'tags') as tags
-          , (data -> 'image') as image_url
-          , (data -> 'cook_time') as cook_time
-          , (data -> 'prep_time') as prep_time
-          , (data -> 'total_time') as total_time
-          , (data -> 'ingredients') as ingredients
-          from recipes, jsonb_array_elements_text(data -> 'ingredients')
-          where value ILIKE '%' || $1 || '%'
-          order by image_url desc;
+          with matches as (
+            select id
+              , (data -> 'name') as name
+              , (data -> 'image') as image_url
+              , (data -> 'cook_time') as cook_time
+              , (data -> 'prep_time') as prep_time
+              , (data -> 'total_time') as total_time
+              , (data -> 'ingredients') as ingredients
+              , count(id) as ingredients_matched
+              , jsonb_array_length(data -> 'ingredients') as ingredients_total
+            from recipes, jsonb_array_elements_text(data -> 'ingredients')
+            where value ilike '%' || $1 || '%'
+            group by id
+          )
+          select *
+            , ingredients_matched::decimal / ingredients_total::decimal as ingredients_percentage_matched
+          from matches
+          order by ingredients_percentage_matched DESC
+          limit 50;
         HEREDOC
-        
+
         expect(helper.build_query(input)).to eq(output)
       end
     
@@ -26,27 +34,25 @@ RSpec.describe QueryHelper, type: :helper do
         input = ["poire", "oeuf", "veau"]
         
         output = <<~HEREDOC.strip
-          select id
-          , (data -> 'name') as name
-          , (data -> 'tags') as tags
-          , (data -> 'image') as image_url
-          , (data -> 'cook_time') as cook_time
-          , (data -> 'prep_time') as prep_time
-          , (data -> 'total_time') as total_time
-          , (data -> 'ingredients') as ingredients
-          from recipes, jsonb_array_elements_text(data -> 'ingredients')
-          where value ILIKE '%' || $1 || '%'
-          and id in (
+          with matches as (
             select id
+              , (data -> 'name') as name
+              , (data -> 'image') as image_url
+              , (data -> 'cook_time') as cook_time
+              , (data -> 'prep_time') as prep_time
+              , (data -> 'total_time') as total_time
+              , (data -> 'ingredients') as ingredients
+              , count(id) as ingredients_matched
+              , jsonb_array_length(data -> 'ingredients') as ingredients_total
             from recipes, jsonb_array_elements_text(data -> 'ingredients')
-            where value ILIKE '%' || $2 || '%'
+            where value ilike '%' || $1 || '%' or value ilike '%' || $2 || '%' or value ilike '%' || $3 || '%'
+            group by id
           )
-          and id in (
-            select id
-            from recipes, jsonb_array_elements_text(data -> 'ingredients')
-            where value ILIKE '%' || $3 || '%'
-          )
-          order by image_url desc;
+          select *
+            , ingredients_matched::decimal / ingredients_total::decimal as ingredients_percentage_matched
+          from matches
+          order by ingredients_percentage_matched DESC
+          limit 50;
         HEREDOC
         
         expect(helper.build_query(input)).to eq(output)

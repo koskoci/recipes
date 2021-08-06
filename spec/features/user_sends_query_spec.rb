@@ -13,7 +13,7 @@ RSpec.feature "User sends query", type: :feature do
   scenario "no recipe found" do
     visit root_path
     
-    fill_in "query", with: "oeuf, viande, foobarbaz"
+    fill_in "query", with: "foobarbaz"
     click_on "Search"
     
     expect(page).not_to have_css '#results'
